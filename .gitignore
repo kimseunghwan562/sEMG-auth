@@ -19,3 +19,4 @@ env/
 Thumbs.db
 # Trained model
 densenet161_semg.pth
+resnet18_semg.pth

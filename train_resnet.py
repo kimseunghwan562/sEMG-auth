@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
-from torchvision.models import densenet161
+from torchvision.models import resnet18
 from pathlib import Path
 from scipy.signal import butter, iirnotch, filtfilt
 import pywt
@@ -33,16 +33,30 @@ def preprocess(x):
 
     # 60Hz 노치 필터
     bn, an = iirnotch(60, 30, FS)
-    x = filtfilt(bn, an, x, axis=0)
+
+    x = filtfilt(
+        bn,
+        an,
+        x,
+        axis=0
+    )
 
     # 20~499Hz 대역통과 필터
     b, a = butter(
         4,
-        [20 / (FS / 2), 499 / (FS / 2)],
+        [
+            20 / (FS / 2),
+            499 / (FS / 2)
+        ],
         btype="band"
     )
 
-    return filtfilt(b, a, x, axis=0)
+    return filtfilt(
+        b,
+        a,
+        x,
+        axis=0
+    )
 
 
 # ==========================================
@@ -67,9 +81,15 @@ def make_windows(x):
 
     windows = []
 
-    for start in range(0, len(x) - WIN + 1, HOP):
+    for start in range(
+        0,
+        len(x) - WIN + 1,
+        HOP
+    ):
 
-        window = x[start:start + WIN]
+        window = x[
+            start:start + WIN
+        ]
 
         windows.append(window)
 
@@ -85,7 +105,11 @@ def minmax(window):
     mn = window.min()
     mx = window.max()
 
-    return (window - mn) / (mx - mn + 1e-8)
+    return (
+        window - mn
+    ) / (
+        mx - mn + 1e-8
+    )
 
 
 # ==========================================
@@ -104,14 +128,19 @@ def to_cwt(window):
             "morl"
         )
 
-        maps.append(np.abs(coef))
+        maps.append(
+            np.abs(coef)
+        )
 
-    # 3번째 채널: 두 채널 평균
+    # 3번째 채널
+    # 두 채널의 평균
     maps.append(
         (maps[0] + maps[1]) / 2
     )
 
-    return np.stack(maps).astype(np.float32)
+    return np.stack(
+        maps
+    ).astype(np.float32)
 
 
 # ==========================================
@@ -132,10 +161,16 @@ def make_dataset(folder):
     X = []
     y = []
 
-    files = list(Path(folder).glob("*/*.csv"))
+    files = list(
+        Path(folder).glob("*/*.csv")
+    )
 
     print()
-    print(folder, "파일 수:", len(files))
+    print(
+        folder,
+        "파일 수:",
+        len(files)
+    )
 
     for i, file in enumerate(files):
 
@@ -145,13 +180,19 @@ def make_dataset(folder):
 
         windows = make_windows(signal)
 
-        label = label_map[file.parent.name]
+        label = label_map[
+            file.parent.name
+        ]
 
         for window in windows:
 
-            window = minmax(window)
+            window = minmax(
+                window
+            )
 
-            cwt = to_cwt(window)
+            cwt = to_cwt(
+                window
+            )
 
             X.append(cwt)
             y.append(label)
@@ -164,10 +205,21 @@ def make_dataset(folder):
     print()
 
     X = np.stack(X)
-    y = np.array(y, dtype=np.int64)
 
-    print("데이터 모양:", X.shape)
-    print("라벨 모양:", y.shape)
+    y = np.array(
+        y,
+        dtype=np.int64
+    )
+
+    print(
+        "데이터 모양:",
+        X.shape
+    )
+
+    print(
+        "라벨 모양:",
+        y.shape
+    )
 
     return X, y
 
@@ -197,18 +249,29 @@ X_test, y_test = make_dataset(
 
 class SEMGDataset(Dataset):
 
-    def __init__(self, X, y):
+    def __init__(
+        self,
+        X,
+        y
+    ):
 
         self.X = torch.tensor(X)
+
         self.y = torch.tensor(y)
 
     def __len__(self):
 
         return len(self.y)
 
-    def __getitem__(self, index):
+    def __getitem__(
+        self,
+        index
+    ):
 
-        return self.X[index], self.y[index]
+        return (
+            self.X[index],
+            self.y[index]
+        )
 
 
 train_dataset = SEMGDataset(
@@ -240,15 +303,15 @@ test_loader = DataLoader(
 
 
 # ==========================================
-# 11. DenseNet161
+# 11. ResNet18
 # ==========================================
 
-model = densenet161(
+model = resnet18(
     weights=None
 )
 
-model.classifier = nn.Linear(
-    2208,
+model.fc = nn.Linear(
+    model.fc.in_features,
     5
 )
 
@@ -276,7 +339,7 @@ EPOCHS = 5
 loss_history = []
 
 print()
-print("===== 학습 시작 =====")
+print("===== ResNet18 학습 시작 =====")
 
 for epoch in range(EPOCHS):
 
@@ -287,6 +350,7 @@ for epoch in range(EPOCHS):
     for X, y in train_loader:
 
         X = X.to(device)
+
         y = y.to(device)
 
         optimizer.zero_grad()
@@ -302,11 +366,18 @@ for epoch in range(EPOCHS):
 
         optimizer.step()
 
-        total_loss += loss.item()
+        total_loss += (
+            loss.item()
+        )
 
-    average_loss = total_loss / len(train_loader)
+    average_loss = (
+        total_loss /
+        len(train_loader)
+    )
 
-    loss_history.append(average_loss)
+    loss_history.append(
+        average_loss
+    )
 
     print(
         f"Epoch [{epoch + 1}/{EPOCHS}] "
@@ -320,44 +391,57 @@ for epoch in range(EPOCHS):
 
 torch.save(
     model.state_dict(),
-    "densenet161_semg.pth"
+    "resnet18_semg.pth"
 )
 
 print()
-print("모델 저장 완료: densenet161_semg.pth")
+print(
+    "모델 저장 완료: "
+    "resnet18_semg.pth"
+)
 
 
 # ==========================================
-# 15. Loss 그래프 저장
+# 15. Loss 그래프
 # ==========================================
 
 plt.figure()
 
 plt.plot(
-    range(1, EPOCHS + 1),
+    range(
+        1,
+        EPOCHS + 1
+    ),
     loss_history,
     marker="o"
 )
 
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
-plt.title("DenseNet161 Training Loss")
+
+plt.title(
+    "ResNet18 Training Loss"
+)
 
 plt.grid(True)
+
 plt.tight_layout()
 
 plt.savefig(
-    "loss_curve.png",
+    "resnet18_loss_curve.png",
     dpi=150
 )
 
 plt.close()
 
-print("Loss 그래프 저장 완료: loss_curve.png")
+print(
+    "Loss 그래프 저장 완료: "
+    "resnet18_loss_curve.png"
+)
 
 
 # ==========================================
-# 16. 테스트 평가
+# 16. 테스트
 # ==========================================
 
 model.eval()
@@ -373,11 +457,15 @@ with torch.no_grad():
     for X, y in test_loader:
 
         X = X.to(device)
+
         y = y.to(device)
 
         output = model(X)
 
-        _, predicted = torch.max(output, 1)
+        _, predicted = torch.max(
+            output,
+            1
+        )
 
         total += y.size(0)
 
@@ -394,23 +482,42 @@ with torch.no_grad():
         )
 
 
-accuracy = correct / total * 100
+accuracy = (
+    correct /
+    total *
+    100
+)
 
 print()
 print("===== 테스트 결과 =====")
-print(f"Test Accuracy: {accuracy:.2f}%")
-print(f"정답: {correct}/{total}")
+
+print(
+    f"Test Accuracy: "
+    f"{accuracy:.2f}%"
+)
+
+print(
+    f"정답: {correct}/{total}"
+)
 
 
 # ==========================================
-# 17. NumPy로 Confusion Matrix 계산
+# 17. Confusion Matrix
 # ==========================================
 
-all_labels = np.array(all_labels)
-all_predictions = np.array(all_predictions)
+all_labels = np.array(
+    all_labels
+)
+
+all_predictions = np.array(
+    all_predictions
+)
 
 cm = np.zeros(
-    (len(CLASS_NAMES), len(CLASS_NAMES)),
+    (
+        len(CLASS_NAMES),
+        len(CLASS_NAMES)
+    ),
     dtype=int
 )
 
@@ -419,28 +526,41 @@ for true_label, predicted_label in zip(
     all_predictions
 ):
 
-    cm[true_label, predicted_label] += 1
+    cm[
+        true_label,
+        predicted_label
+    ] += 1
 
 
 print()
-print("===== Confusion Matrix =====")
+print(
+    "===== Confusion Matrix ====="
+)
+
 print(cm)
 
 
 # ==========================================
-# 18. Confusion Matrix 이미지 저장
+# 18. Confusion Matrix 이미지
 # ==========================================
 
-plt.figure(figsize=(7, 6))
+plt.figure(
+    figsize=(7, 6)
+)
 
 plt.imshow(cm)
 
 plt.title(
-    "sEMG DenseNet161 Confusion Matrix"
+    "sEMG ResNet18 Confusion Matrix"
 )
 
-plt.xlabel("Predicted Label")
-plt.ylabel("True Label")
+plt.xlabel(
+    "Predicted Label"
+)
+
+plt.ylabel(
+    "True Label"
+)
 
 plt.xticks(
     range(len(CLASS_NAMES)),
@@ -452,9 +572,13 @@ plt.yticks(
     CLASS_NAMES
 )
 
-for i in range(len(CLASS_NAMES)):
+for i in range(
+    len(CLASS_NAMES)
+):
 
-    for j in range(len(CLASS_NAMES)):
+    for j in range(
+        len(CLASS_NAMES)
+    ):
 
         plt.text(
             j,
@@ -469,7 +593,7 @@ plt.colorbar()
 plt.tight_layout()
 
 plt.savefig(
-    "confusion_matrix.png",
+    "resnet18_confusion_matrix.png",
     dpi=150
 )
 
@@ -477,7 +601,7 @@ plt.close()
 
 print(
     "Confusion Matrix 저장 완료: "
-    "confusion_matrix.png"
+    "resnet18_confusion_matrix.png"
 )
 
 
@@ -486,11 +610,15 @@ print(
 # ==========================================
 
 print()
-print("===== 클래스별 정확도 =====")
+print(
+    "===== 클래스별 정확도 ====="
+)
 
 class_accuracies = []
 
-for i, class_name in enumerate(CLASS_NAMES):
+for i, class_name in enumerate(
+    CLASS_NAMES
+):
 
     class_total = cm[i].sum()
 
@@ -520,115 +648,183 @@ for i, class_name in enumerate(CLASS_NAMES):
 
 
 # ==========================================
-# 20. Precision / Recall / F1 직접 계산
+# 20. Precision / Recall / F1
 # ==========================================
 
 precision_list = []
+
 recall_list = []
+
 f1_list = []
 
-for i in range(len(CLASS_NAMES)):
+for i in range(
+    len(CLASS_NAMES)
+):
 
     tp = cm[i, i]
 
-    fp = cm[:, i].sum() - tp
+    fp = (
+        cm[:, i].sum()
+        - tp
+    )
 
-    fn = cm[i, :].sum() - tp
+    fn = (
+        cm[i, :].sum()
+        - tp
+    )
 
     precision = (
-        tp / (tp + fp)
+        tp /
+        (tp + fp)
         if (tp + fp) > 0
         else 0
     )
 
     recall = (
-        tp / (tp + fn)
+        tp /
+        (tp + fn)
         if (tp + fn) > 0
         else 0
     )
 
-    if precision + recall > 0:
+    if (
+        precision + recall
+        > 0
+    ):
 
         f1 = (
             2 *
             precision *
             recall /
-            (precision + recall)
+            (
+                precision +
+                recall
+            )
         )
 
     else:
 
         f1 = 0
 
-    precision_list.append(precision)
-    recall_list.append(recall)
-    f1_list.append(f1)
+    precision_list.append(
+        precision
+    )
+
+    recall_list.append(
+        recall
+    )
+
+    f1_list.append(
+        f1
+    )
 
 
-macro_precision = np.mean(
-    precision_list
-) * 100
+macro_precision = (
+    np.mean(
+        precision_list
+    ) * 100
+)
 
-macro_recall = np.mean(
-    recall_list
-) * 100
+macro_recall = (
+    np.mean(
+        recall_list
+    ) * 100
+)
 
-macro_f1 = np.mean(
-    f1_list
-) * 100
+macro_f1 = (
+    np.mean(
+        f1_list
+    ) * 100
+)
 
 
 print()
-print("===== 전체 평가 지표 =====")
-print(f"Accuracy : {accuracy:.2f}%")
-print(f"Precision: {macro_precision:.2f}%")
-print(f"Recall   : {macro_recall:.2f}%")
-print(f"F1 Score : {macro_f1:.2f}%")
+print(
+    "===== 전체 평가 지표 ====="
+)
+
+print(
+    f"Accuracy : "
+    f"{accuracy:.2f}%"
+)
+
+print(
+    f"Precision: "
+    f"{macro_precision:.2f}%"
+)
+
+print(
+    f"Recall   : "
+    f"{macro_recall:.2f}%"
+)
+
+print(
+    f"F1 Score : "
+    f"{macro_f1:.2f}%"
+)
 
 
 # ==========================================
-# 21. 결과 텍스트 저장
+# 21. 결과 저장
 # ==========================================
 
 with open(
-    "densenet161_results.txt",
+    "resnet18_results.txt",
     "w",
     encoding="utf-8"
 ) as f:
 
-    f.write("DenseNet161 sEMG Classification Results\n")
-    f.write("=" * 50 + "\n\n")
-
     f.write(
-        f"Accuracy : {accuracy:.2f}%\n"
+        "ResNet18 sEMG Classification Results\n"
     )
 
     f.write(
-        f"Precision: {macro_precision:.2f}%\n"
+        "=" * 50 + "\n\n"
     )
 
     f.write(
-        f"Recall   : {macro_recall:.2f}%\n"
+        f"Accuracy : "
+        f"{accuracy:.2f}%\n"
     )
 
     f.write(
-        f"F1 Score : {macro_f1:.2f}%\n\n"
+        f"Precision: "
+        f"{macro_precision:.2f}%\n"
     )
 
-    f.write("Confusion Matrix\n")
-    f.write("-" * 30 + "\n")
+    f.write(
+        f"Recall   : "
+        f"{macro_recall:.2f}%\n"
+    )
+
+    f.write(
+        f"F1 Score : "
+        f"{macro_f1:.2f}%\n\n"
+    )
+
+    f.write(
+        "Confusion Matrix\n"
+    )
+
+    f.write(
+        "-" * 30 + "\n"
+    )
 
     for row in cm:
 
         f.write(
             " ".join(
                 map(str, row)
-            )
-            + "\n"
+            ) + "\n"
         )
 
-    f.write("\nClass Accuracy\n")
-    f.write("-" * 30 + "\n")
+    f.write(
+        "\nClass Accuracy\n"
+    )
+
+    f.write(
+        "-" * 30 + "\n"
+    )
 
     for class_name, class_accuracy in zip(
         CLASS_NAMES,
@@ -644,8 +840,10 @@ with open(
 print()
 print(
     "결과 저장 완료: "
-    "densenet161_results.txt"
+    "resnet18_results.txt"
 )
 
 print()
-print("===== 전체 학습 및 평가 완료 =====")
+print(
+    "===== ResNet18 학습 및 평가 완료 ====="
+)
