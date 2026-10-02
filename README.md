@@ -6,15 +6,15 @@
 
 
 
-본 프로젝트는 sEMG(surface Electromyography, 표면 근전도) 신호를 이용하여 5개의 클래스(A\~E)를 분류하는 딥러닝 모델을 구현한 프로젝트이다.
+이 프로젝트는 sEMG(표면 근전도) 데이터를 이용하여 A\~E 5개의 클래스를 분류하는 딥러닝 모델을 만들어 본 프로젝트이다.
 
 
 
-수집된 sEMG 데이터를 전처리한 후 CWT(Continuous Wavelet Transform)를 이용하여 시간-주파수 특징으로 변환하고, DenseNet161과 ResNet18 모델을 이용하여 각 데이터를 분류하였다.
+sEMG 데이터를 전처리한 뒤 CWT를 적용하여 시간-주파수 데이터로 변환하고, DenseNet161과 ResNet18을 사용하여 분류하였다.
 
 
 
-최종적으로 두 모델의 Accuracy, Precision, Recall, F1 Score를 비교하고 Confusion Matrix를 분석하여 모델의 성능과 오분류 특성을 확인하였다.
+두 모델을 같은 조건에서 학습시킨 후 Accuracy, Precision, Recall, F1 Score를 비교하고 Confusion Matrix를 확인하였다.
 
 
 
@@ -22,15 +22,15 @@
 
 
 
-\## 2. 데이터셋
+\## 2. 데이터
 
 
 
-\### 2.1 데이터 구성
+\### 데이터 구성
 
 
 
-데이터는 A\~E의 5개 클래스로 구성되어 있으며, 각 클래스마다 50개의 CSV 파일이 존재한다.
+데이터는 A\~E 총 5개의 클래스로 구성되어 있고, 각 클래스마다 50개의 CSV 파일이 있다.
 
 
 
@@ -52,7 +52,7 @@
 
 
 
-각 CSV 파일은 2개의 sEMG 채널로 구성되어 있으며, 하나의 파일에는 3000개의 데이터가 저장되어 있다.
+각 CSV 파일은 2개의 sEMG 채널로 되어 있으며, 파일 하나당 3000개의 데이터가 들어 있다.
 
 
 
@@ -66,11 +66,11 @@
 
 
 
-\### 2.2 Train / Test 데이터
+\### Train / Test
 
 
 
-전체 데이터를 학습 데이터와 테스트 데이터로 분리하여 사용하였다.
+각 클래스에서 40개는 Train, 10개는 Test에 사용하였다.
 
 
 
@@ -86,10 +86,6 @@
 
 
 
-각 클래스에서 40개의 파일을 학습에 사용하고 10개의 파일을 테스트에 사용하여 총 200개의 Train 파일과 50개의 Test 파일을 구성하였다.
-
-
-
 \---
 
 
@@ -98,15 +94,15 @@
 
 
 
-딥러닝 모델에 입력하기 전에 다음과 같은 전처리를 수행하였다.
+모델에 넣기 전에 sEMG 데이터에 다음 전처리를 적용하였다.
 
 
 
-\### 3.1 60 Hz Notch Filter
+\### 60 Hz Notch Filter
 
 
 
-전원 노이즈와 같이 특정 주파수에서 발생하는 60 Hz 성분을 제거하기 위해 Notch Filter를 적용하였다.
+60 Hz 부근의 전원 노이즈를 제거하기 위해 Notch Filter를 적용하였다.
 
 
 
@@ -116,31 +112,23 @@
 
 
 
-\### 3.2 Band-pass Filter
+\### Band-pass Filter
 
 
 
-sEMG 신호에서 필요한 주파수 영역을 사용하기 위해 20\~499 Hz 범위의 Band-pass Filter를 적용하였다.
+20\~499 Hz 범위의 신호를 사용하기 위해 4차 Butterworth Band-pass Filter를 적용하였다.
 
 
 
-\* Filter: 4차 Butterworth
-
-\* 통과 대역: 20\~499 Hz
+\### Windowing
 
 
 
-\### 3.3 Windowing
+3000개의 데이터를 일정한 크기로 나누었다.
 
 
 
-전체 신호를 일정한 길이의 Window로 분할하였다.
-
-
-
-\* Window 크기: 300 samples
-
-\* Sampling Frequency: 1000 Hz
+\* Window: 300 samples
 
 \* Window 길이: 300 ms
 
@@ -150,23 +138,23 @@ sEMG 신호에서 필요한 주파수 영역을 사용하기 위해 20\~499 Hz �
 
 
 
-3000 samples의 하나의 파일에서 총 19개의 Window가 생성된다.
+하나의 CSV 파일에서 19개의 Window가 만들어진다.
 
 
 
-\### 3.4 Min-Max Normalization
+\### Min-Max Normalization
 
 
 
-각 Window에 대해 Min-Max Normalization을 적용하여 데이터를 0\~1 범위로 정규화하였다.
+각 Window의 값을 0\~1 범위로 정규화하였다.
 
 
 
-\### 3.5 CWT 변환
+\### CWT
 
 
 
-전처리된 sEMG 신호를 CWT(Continuous Wavelet Transform)를 사용하여 시간-주파수 영역으로 변환하였다.
+전처리한 신호에 CWT(Continuous Wavelet Transform)를 적용하였다.
 
 
 
@@ -174,13 +162,13 @@ sEMG 신호에서 필요한 주파수 영역을 사용하기 위해 20\~499 Hz �
 
 \* Scale: 1\~32
 
-\* 기존 2개 채널을 각각 CWT로 변환
+\* 기존 2개 채널을 각각 CWT 변환
 
-\* 두 채널의 평균값을 추가하여 총 3개 채널로 구성
+\* 두 채널의 평균값을 추가
 
 
 
-따라서 최종적으로 하나의 입력 데이터는 다음과 같은 형태를 갖는다.
+최종 입력 데이터의 형태는 다음과 같다.
 
 
 
@@ -200,15 +188,11 @@ sEMG 신호에서 필요한 주파수 영역을 사용하기 위해 20\~499 Hz �
 
 
 
-본 프로젝트에서는 동일한 데이터와 전처리 조건에서 두 가지 CNN 기반 모델을 학습하여 성능을 비교하였다.
+이번 프로젝트에서는 DenseNet161과 ResNet18 두 가지 모델을 사용하였다.
 
 
 
-\### 4.1 DenseNet161
-
-
-
-DenseNet161을 사용하여 sEMG의 시간-주파수 특징을 분류하였다.
+\### DenseNet161
 
 
 
@@ -222,7 +206,7 @@ DenseNet161을 사용하여 sEMG의 시간-주파수 특징을 분류하였다.
 
 \* Learning Rate: 0.001
 
-\* Loss Function: Cross Entropy Loss
+\* Loss: Cross Entropy Loss
 
 \* Batch Size: 16
 
@@ -230,15 +214,7 @@ DenseNet161을 사용하여 sEMG의 시간-주파수 특징을 분류하였다.
 
 
 
-최종 출력 클래스는 A, B, C, D, E의 5개이다.
-
-
-
-\### 4.2 ResNet18
-
-
-
-두 번째 모델로 ResNet18을 사용하였다.
+\### ResNet18
 
 
 
@@ -252,7 +228,7 @@ DenseNet161을 사용하여 sEMG의 시간-주파수 특징을 분류하였다.
 
 \* Learning Rate: 0.001
 
-\* Loss Function: Cross Entropy Loss
+\* Loss: Cross Entropy Loss
 
 \* Batch Size: 16
 
@@ -260,7 +236,7 @@ DenseNet161을 사용하여 sEMG의 시간-주파수 특징을 분류하였다.
 
 
 
-DenseNet161과 동일한 데이터 및 전처리 조건에서 학습하여 두 모델의 성능을 비교하였다.
+두 모델 모두 같은 Train/Test 데이터와 전처리 방법을 사용하였다.
 
 
 
@@ -268,23 +244,19 @@ DenseNet161과 동일한 데이터 및 전처리 조건에서 학습하여 두 �
 
 
 
-\## 5. 학습 및 평가 방법
+\## 5. 학습 및 평가
 
 
 
-학습 과정에서는 Train 데이터 3800개 Window를 사용하였다.
+Train 데이터 3800개의 Window를 이용하여 모델을 학습하였다.
 
 
 
-각 Epoch마다 전체 Train 데이터를 학습하고 Loss를 기록하였다.
+학습이 끝난 후 Test 데이터 950개를 이용하여 성능을 확인하였다.
 
 
 
-학습이 완료된 후 Test 데이터 950개 Window를 이용하여 모델의 성능을 평가하였다.
-
-
-
-평가 지표로 다음 네 가지를 사용하였다.
+평가에는 다음 지표를 사용하였다.
 
 
 
@@ -298,11 +270,11 @@ DenseNet161과 동일한 데이터 및 전처리 조건에서 학습하여 두 �
 
 
 
-Precision, Recall, F1 Score는 각 클래스별 값을 계산한 후 Macro Average를 사용하였다.
+Precision, Recall, F1 Score는 Macro Average를 사용하였다.
 
 
 
-Confusion Matrix는 실제 클래스와 모델이 예측한 클래스를 비교하여 클래스별 분류 특성을 확인하였다.
+또한 Confusion Matrix를 통해 어떤 클래스에서 오분류가 많이 발생하는지 확인하였다.
 
 
 
@@ -314,11 +286,11 @@ Confusion Matrix는 실제 클래스와 모델이 예측한 클래스를 비교�
 
 
 
-프로젝트 폴더에서 다음 명령어를 실행한다.
+프로젝트 폴더에서 아래 명령어를 실행하면 된다.
 
 
 
-\### DenseNet161 학습 및 평가
+\### DenseNet161
 
 
 
@@ -348,7 +320,7 @@ densenet161\_results.txt
 
 
 
-\### ResNet18 학습 및 평가
+\### ResNet18
 
 
 
@@ -378,7 +350,7 @@ resnet18\_results.txt
 
 
 
-학습된 `.pth` 모델 파일은 용량이 크기 때문에 GitHub 저장소에는 포함하지 않고 `.gitignore`로 관리하였다.
+`.pth` 파일은 용량이 크기 때문에 GitHub에는 올리지 않고 `.gitignore`에 추가하였다.
 
 
 
@@ -386,7 +358,7 @@ resnet18\_results.txt
 
 
 
-\## 7. 주요 파일 설명
+\## 7. 주요 파일
 
 
 
@@ -396,45 +368,41 @@ resnet18\_results.txt
 
 | `data/`                         | 원본 sEMG CSV 데이터              |
 
-| `dataset\_split/`                | Train / Test로 분리된 데이터        |
+| `dataset\_split/`                | Train / Test 데이터             |
 
 | `train\_densenet.py`             | DenseNet161 학습 및 평가          |
 
 | `train\_resnet.py`               | ResNet18 학습 및 평가             |
 
-| `evaluate.py`                   | 학습된 DenseNet161 평가 코드        |
+| `evaluate.py`                   | DenseNet161 평가               |
 
-| `dataset\_summary.py`            | 데이터셋 구성 확인                   |
+| `dataset\_summary.py`            | 데이터셋 확인                      |
 
-| `plot\_signal.py`                | sEMG 신호 파형 확인                |
+| `plot\_signal.py`                | sEMG 신호 확인                   |
 
-| `cwt\_example.py`                | CWT 변환 예시 확인                 |
+| `cwt\_example.py`                | CWT 변환 확인                    |
 
-| `make\_window.py`                | Windowing 과정 확인용 코드          |
+| `make\_window.py`                | Windowing 관련 코드              |
 
-| `semg\_split.py`                 | 데이터 분할 확인용 코드                |
+| `semg\_split.py`                 | 데이터 분할 확인                    |
 
 | `split\_dataset.py`              | 데이터 분할 관련 코드                 |
 
-| `check\_cuda.py`                 | PyTorch 및 CUDA 환경 확인         |
+| `check\_cuda.py`                 | PyTorch / CUDA 확인            |
 
-| `loss\_curve.py`                 | Loss 그래프 확인 관련 코드            |
+| `loss\_curve.py`                 | Loss 그래프 관련 코드               |
 
 | `confusion\_matrix.png`          | DenseNet161 Confusion Matrix |
 
 | `resnet18\_confusion\_matrix.png` | ResNet18 Confusion Matrix    |
 
-| `loss\_curve.png`                | DenseNet161 학습 Loss          |
+| `loss\_curve.png`                | DenseNet161 Loss 그래프         |
 
-| `resnet18\_loss\_curve.png`       | ResNet18 학습 Loss             |
+| `resnet18\_loss\_curve.png`       | ResNet18 Loss 그래프            |
 
-| `densenet161\_results.txt`       | DenseNet161 평가 결과            |
+| `densenet161\_results.txt`       | DenseNet161 결과               |
 
-| `resnet18\_results.txt`          | ResNet18 평가 결과               |
-
-| `densenet161\_semg.pth`          | DenseNet161 학습 모델            |
-
-| `resnet18\_semg.pth`             | ResNet18 학습 모델               |
+| `resnet18\_results.txt`          | ResNet18 결과                  |
 
 
 
@@ -446,7 +414,7 @@ resnet18\_results.txt
 
 
 
-두 모델을 동일한 Train/Test 데이터와 동일한 전처리 조건에서 학습하여 성능을 비교하였다.
+두 모델을 같은 데이터와 전처리 조건에서 학습하였다.
 
 
 
@@ -464,19 +432,19 @@ resnet18\_results.txt
 
 
 
-DenseNet161은 Accuracy 84.63%를 기록하였으며, ResNet18은 76.21%를 기록하였다.
+DenseNet161의 Accuracy는 84.63%, ResNet18은 76.21%로 나타났다.
 
 
 
-Accuracy 기준으로 두 모델 사이에는 약 8.42%p의 차이가 있었다.
+Accuracy 차이는 약 8.42%p였다.
 
 
 
-F1 Score 역시 DenseNet161이 84.68%, ResNet18이 76.06%로 DenseNet161이 더 높은 결과를 보였다.
+F1 Score도 DenseNet161 84.68%, ResNet18 76.06%로 나타났다.
 
 
 
-동일한 데이터와 전처리 조건에서 비교했을 때 DenseNet161이 이번 실험에서 더 높은 분류 성능을 나타냈다.
+이번 실험에서는 DenseNet161이 ResNet18보다 높은 성능을 보였다.
 
 
 
@@ -489,10 +457,6 @@ F1 Score 역시 DenseNet161이 84.68%, ResNet18이 76.06%로 DenseNet161이 더 
 
 
 \### 9.1 DenseNet161
-
-
-
-DenseNet161의 Confusion Matrix는 다음과 같다.
 
 
 
@@ -532,15 +496,15 @@ DenseNet161의 Confusion Matrix는 다음과 같다.
 
 
 
-A 클래스가 97.37%로 가장 높은 분류 정확도를 보였다.
+A 클래스의 정확도가 97.37%로 가장 높았다.
 
 
 
-반면 E 클래스가 77.37%로 가장 낮은 정확도를 보였으며, B 클래스도 78.95%로 상대적으로 낮았다.
+E 클래스는 77.37%로 가장 낮았고 B 클래스도 78.95%로 낮은 편이었다.
 
 
 
-가장 크게 나타난 오분류는 다음과 같다.
+주요 오분류는 다음과 같다.
 
 
 
@@ -554,27 +518,19 @@ A 클래스가 97.37%로 가장 높은 분류 정확도를 보였다.
 
 
 
-특히 B와 E 사이에서 서로 오분류되는 경우가 많이 나타났다.
+특히 B와 E 사이에서 오분류가 많이 발생하였다.
 
 
 
-이는 두 클래스의 sEMG 신호가 전처리 및 CWT 변환 이후 유사한 특징을 가지고 있을 가능성이 있다. 또한 현재 데이터의 파일 수가 클래스당 50개로 제한되어 있기 때문에 일부 클래스의 특징을 충분히 학습하지 못했을 가능성도 있다.
+B와 E의 신호 특징이 일부 비슷해서 구분하기 어려웠을 가능성이 있다. 또한 클래스당 파일 수가 50개이기 때문에 데이터가 충분하지 않았을 가능성도 있다.
 
 
 
-다만 이러한 원인은 Confusion Matrix만으로 직접 확인할 수 있는 사실이 아니라, 오분류 결과를 바탕으로 추정한 원인이다.
-
-
-
-\---
+다만 정확한 원인은 추가적인 데이터와 특징 분석이 필요하다.
 
 
 
 \### 9.2 ResNet18
-
-
-
-ResNet18의 Confusion Matrix는 다음과 같다.
 
 
 
@@ -614,15 +570,15 @@ ResNet18의 Confusion Matrix는 다음과 같다.
 
 
 
-D 클래스가 92.63%로 가장 높은 분류 정확도를 보였고, A 클래스도 90.53%로 높은 결과를 보였다.
+D 클래스의 정확도가 92.63%로 가장 높았다.
 
 
 
-반면 B 클래스는 59.47%로 가장 낮은 정확도를 보였다.
+B 클래스는 59.47%로 가장 낮았다.
 
 
 
-가장 크게 나타난 오분류는 다음과 같다.
+주요 오분류는 다음과 같다.
 
 
 
@@ -636,19 +592,11 @@ D 클래스가 92.63%로 가장 높은 분류 정확도를 보였고, A 클래�
 
 
 
-ResNet18에서는 여러 클래스가 D 클래스로 오분류되는 경향이 나타났다.
+ResNet18에서는 C, B, E 클래스가 D 클래스로 오분류되는 경우가 많이 나타났다.
 
 
 
-이러한 결과는 ResNet18이 현재의 CWT 입력 특징을 학습하는 과정에서 일부 클래스의 특징을 명확하게 구분하지 못했을 가능성을 보여준다.
-
-
-
-특히 C, B, E 클래스에서 D 클래스로의 오분류가 상대적으로 많이 나타났으며, 이는 클래스 간 특징이 일부 유사하거나 현재 전처리 방식에서 클래스 구분에 필요한 특징이 충분히 표현되지 않았을 가능성이 있다.
-
-
-
-이 역시 Confusion Matrix 결과를 바탕으로 한 추정이며, 실제 원인을 확인하기 위해서는 추가적인 특징 분석이나 데이터 증가 실험이 필요하다.
+현재 결과만 보면 일부 클래스의 특징을 충분히 구분하지 못한 것으로 볼 수 있다. 정확한 원인을 확인하려면 추가적인 데이터 분석이 필요하다.
 
 
 
@@ -656,39 +604,41 @@ ResNet18에서는 여러 클래스가 D 클래스로 오분류되는 경향이 �
 
 
 
-\## 10. 최종 결과 및 고찰
+\## 10. 최종 결과
 
 
 
-이번 실험에서는 CWT를 이용하여 sEMG 신호를 시간-주파수 특징으로 변환한 후 DenseNet161과 ResNet18을 이용하여 5개 클래스를 분류하였다.
+이번 프로젝트에서는 sEMG 데이터를 전처리하고 CWT를 적용한 뒤 DenseNet161과 ResNet18을 이용하여 A\~E 클래스를 분류하였다.
 
 
 
-두 모델 모두 동일한 Train/Test 데이터와 전처리 과정을 사용하였다.
+결과는 다음과 같다.
 
 
 
-실험 결과 DenseNet161은 Accuracy 84.63%, F1 Score 84.68%를 기록하였으며 ResNet18은 Accuracy 76.21%, F1 Score 76.06%를 기록하였다.
+\* DenseNet161 Accuracy: \*\*84.63%\*\*
+
+\* DenseNet161 F1 Score: \*\*84.68%\*\*
+
+\* ResNet18 Accuracy: \*\*76.21%\*\*
+
+\* ResNet18 F1 Score: \*\*76.06%\*\*
 
 
 
-DenseNet161에서는 A 클래스가 가장 높은 정확도를 보였고, B와 E 클래스 사이의 오분류가 상대적으로 많이 나타났다.
+이번 실험에서는 DenseNet161이 ResNet18보다 높은 성능을 보였다.
 
 
 
-ResNet18에서는 D 클래스의 정확도가 높게 나타났지만, B와 E 클래스의 정확도가 낮았으며 C → D, B → D와 같은 오분류가 많이 발생하였다.
+DenseNet161에서는 B와 E 사이의 오분류가 많이 나타났고, ResNet18에서는 C, B, E에서 D로 오분류되는 경우가 많이 나타났다.
 
 
 
-따라서 이번 실험에서는 DenseNet161이 전체적인 분류 성능 측면에서 더 높은 결과를 보였다.
+현재 데이터는 클래스당 50개의 파일로 구성되어 있고 학습도 5 Epoch로 진행했기 때문에, 데이터 수나 학습 조건을 변경하면 결과가 달라질 수 있다.
 
 
 
-다만 현재 실험은 클래스별 데이터가 50개로 제한되어 있고 Epoch도 5회로 설정되어 있기 때문에 추가적인 데이터 확보, 학습 횟수 조정, 전처리 방법 변경 등을 통해 성능이 달라질 수 있다.
-
-
-
-향후에는 클래스별 데이터의 특징을 추가로 분석하고, 오분류가 많이 발생하는 B, C, E 클래스에 대한 데이터를 확인하여 모델의 분류 성능을 개선할 필요가 있다.
+추가로 데이터를 확보하거나 전처리 방법 및 학습 조건을 변경하면 오분류가 많은 클래스의 성능을 개선할 수 있을 것으로 생각된다.
 
 
 
