@@ -1,0 +1,852 @@
+{
+  "data_folder": "data/H",
+  "source_file_count": 64,
+  "class_names": [
+    "30_extor",
+    "30_fist",
+    "30_open",
+    "30_pro",
+    "60_extor",
+    "60_fist",
+    "60_open",
+    "60_pro"
+  ],
+  "class_file_counts_total": {
+    "30_extor": 8,
+    "30_fist": 8,
+    "30_open": 8,
+    "30_pro": 8,
+    "60_extor": 8,
+    "60_fist": 8,
+    "60_open": 8,
+    "60_pro": 8
+  },
+  "train_file_count": 51,
+  "test_file_count": 13,
+  "train_files_per_class": {
+    "30_extor": 7,
+    "30_fist": 7,
+    "30_open": 6,
+    "30_pro": 6,
+    "60_extor": 6,
+    "60_fist": 7,
+    "60_open": 6,
+    "60_pro": 6
+  },
+  "test_files_per_class": {
+    "30_extor": 1,
+    "30_fist": 1,
+    "30_open": 2,
+    "30_pro": 2,
+    "60_extor": 2,
+    "60_fist": 1,
+    "60_open": 2,
+    "60_pro": 2
+  },
+  "source_csv_shapes_unique": [
+    [
+      150721,
+      8
+    ],
+    [
+      150797,
+      8
+    ],
+    [
+      150836,
+      8
+    ],
+    [
+      150837,
+      8
+    ],
+    [
+      150964,
+      8
+    ],
+    [
+      150990,
+      8
+    ],
+    [
+      151067,
+      8
+    ],
+    [
+      151117,
+      8
+    ],
+    [
+      151156,
+      8
+    ],
+    [
+      151181,
+      8
+    ],
+    [
+      151194,
+      8
+    ],
+    [
+      151271,
+      8
+    ],
+    [
+      151297,
+      8
+    ],
+    [
+      151335,
+      8
+    ],
+    [
+      151361,
+      8
+    ],
+    [
+      151374,
+      8
+    ],
+    [
+      151412,
+      8
+    ],
+    [
+      151447,
+      8
+    ],
+    [
+      151489,
+      8
+    ],
+    [
+      151501,
+      8
+    ],
+    [
+      151604,
+      8
+    ],
+    [
+      151617,
+      8
+    ],
+    [
+      151629,
+      8
+    ],
+    [
+      151694,
+      8
+    ],
+    [
+      151770,
+      8
+    ],
+    [
+      151796,
+      8
+    ],
+    [
+      151808,
+      8
+    ],
+    [
+      151821,
+      8
+    ],
+    [
+      151885,
+      8
+    ],
+    [
+      151886,
+      8
+    ],
+    [
+      151898,
+      8
+    ],
+    [
+      151911,
+      8
+    ],
+    [
+      151924,
+      8
+    ],
+    [
+      151936,
+      8
+    ],
+    [
+      151950,
+      8
+    ],
+    [
+      151975,
+      8
+    ],
+    [
+      151988,
+      8
+    ],
+    [
+      152014,
+      8
+    ],
+    [
+      152026,
+      8
+    ],
+    [
+      152065,
+      8
+    ],
+    [
+      152116,
+      8
+    ],
+    [
+      152128,
+      8
+    ],
+    [
+      152154,
+      8
+    ],
+    [
+      152180,
+      8
+    ],
+    [
+      152231,
+      8
+    ],
+    [
+      152244,
+      8
+    ],
+    [
+      152256,
+      8
+    ],
+    [
+      152282,
+      8
+    ],
+    [
+      152296,
+      8
+    ],
+    [
+      152346,
+      8
+    ],
+    [
+      152487,
+      8
+    ],
+    [
+      152564,
+      8
+    ],
+    [
+      152616,
+      8
+    ],
+    [
+      152846,
+      8
+    ],
+    [
+      153601,
+      8
+    ]
+  ],
+  "signal_columns": [
+    "bandpass 1",
+    "bandpass 2",
+    "bandpass 3",
+    "bandpass 4",
+    "bandpass 5"
+  ],
+  "sampling_rate_hz": 1000,
+  "mark_events_min_max": [
+    30,
+    30
+  ],
+  "median_trial_interval_samples": 5000,
+  "median_trial_interval_seconds": 5.0,
+  "filter": {
+    "notch_hz": 60.0,
+    "notch_q": 30.0,
+    "bandpass_hz": [
+      20.0,
+      450.0
+    ],
+    "butterworth_order": 4,
+    "applied_per_marked_trial": true
+  },
+  "analysis_crop": {
+    "start_after_mark_samples": 1500,
+    "length_samples": 2000,
+    "duration_seconds": 2.0
+  },
+  "sliding_window": {
+    "window_samples": 200,
+    "window_ms": 200.0,
+    "hop_samples": 100,
+    "hop_ms": 100.0,
+    "overlap_percent": 50.0,
+    "windows_per_segment": 19
+  },
+  "feature_names": [
+    "RMS_ch1",
+    "RMS_ch2",
+    "RMS_ch3",
+    "RMS_ch4",
+    "RMS_ch5",
+    "MAV_ch1",
+    "MAV_ch2",
+    "MAV_ch3",
+    "MAV_ch4",
+    "MAV_ch5",
+    "WL_ch1",
+    "WL_ch2",
+    "WL_ch3",
+    "WL_ch4",
+    "WL_ch5",
+    "ZC_ch1",
+    "ZC_ch2",
+    "ZC_ch3",
+    "ZC_ch4",
+    "ZC_ch5",
+    "SSC_ch1",
+    "SSC_ch2",
+    "SSC_ch3",
+    "SSC_ch4",
+    "SSC_ch5"
+  ],
+  "features_per_window": 25,
+  "feature_implementation": "NumPy RMS, MAV, WL, ZC, SSC; feature-major then channel order; threshold=0.01",
+  "split": "Source CSV files stratified 80/20 before filtering, cropping, windowing and feature extraction; random_state=42",
+  "scaler": "sklearn StandardScaler",
+  "train_file_split": "6 per class",
+  "test_file_split": "2 per class",
+  "train_trials": 1530,
+  "test_trials": 390,
+  "train_feature_shape": [
+    29070,
+    25
+  ],
+  "test_feature_shape": [
+    7410,
+    25
+  ],
+  "train_windows_per_class": {
+    "30_extor": 3990,
+    "30_fist": 3990,
+    "30_open": 3420,
+    "30_pro": 3420,
+    "60_extor": 3420,
+    "60_fist": 3990,
+    "60_open": 3420,
+    "60_pro": 3420
+  },
+  "test_windows_per_class": {
+    "30_extor": 570,
+    "30_fist": 570,
+    "30_open": 1140,
+    "30_pro": 1140,
+    "60_extor": 1140,
+    "60_fist": 570,
+    "60_open": 1140,
+    "60_pro": 1140
+  },
+  "scaled_train_mean_abs_max": 9.293265975429676e-06,
+  "scaled_train_std_min_max": [
+    0.99992436170578,
+    1.0001516342163086
+  ],
+  "limitations": [
+    "File-wise split prevents windows from the same source CSV entering both sets; participant-independent generalization is not measured because multiple class files from each participant may occur in both sets.",
+    "The 1.5-second crop offset follows the lecture example and is an analysis choice, not a start time specified by the cited paper."
+  ],
+  "outputs": {
+    "dataset_npz": "week2_results/dataset.npz",
+    "filter_plot": "week2_results/week2_filter_spectrum.png",
+    "segment_plot": "week2_results/week2_segment_5channels.png"
+  },
+  "file_manifest": {
+    "a_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "a_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "a_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "a_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "a_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "a_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "a_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "a_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "b_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "c_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "d_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "e_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "f_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "g_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_30 extor.csv": {
+      "class": "30_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_30 fist.csv": {
+      "class": "30_fist",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_30 open.csv": {
+      "class": "30_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_30 pro.csv": {
+      "class": "30_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_60 extor.csv": {
+      "class": "60_extor",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_60 fist.csv": {
+      "class": "60_fist",
+      "repetitions": 30,
+      "split": "test",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_60 open.csv": {
+      "class": "60_open",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    },
+    "h_60 pro.csv": {
+      "class": "60_pro",
+      "repetitions": 30,
+      "split": "train",
+      "mark_events": 30,
+      "period_samples": 5000
+    }
+  },
+  "train_file_split_per_class": {
+    "30_extor": 7,
+    "30_fist": 7,
+    "30_open": 6,
+    "30_pro": 6,
+    "60_extor": 6,
+    "60_fist": 7,
+    "60_open": 6,
+    "60_pro": 6
+  },
+  "test_file_split_per_class": {
+    "30_extor": 1,
+    "30_fist": 1,
+    "30_open": 2,
+    "30_pro": 2,
+    "60_extor": 2,
+    "60_fist": 1,
+    "60_open": 2,
+    "60_pro": 2
+  }
+}
