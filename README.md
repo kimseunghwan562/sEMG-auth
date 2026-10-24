@@ -1,110 +1,644 @@
-# sEMG 손동작·팔꿈치 각도 분류 재현 실험
+\# sEMG Classification using CWT and Deep Learning
 
-교수님이 제공한 공개 sEMG 데이터로 4가지 손동작과 2가지 팔꿈치 각도 조합, 총 8개 클래스를 분류한다. 논문에서 사용한 시간영역 특징과 RF·SVM·XGBoost 계열 모델을 참고해 파일 단위 그룹 5-fold 평가를 수행한다. 논문 초록은 5-fold를 명시하지만 fold 구성 단위는 공개 초록에서 확인되지 않아, 이 평가를 논문과 완전히 동일한 재현으로 주장하지 않는다.
 
-## 참고 논문 및 데이터
 
-- 논문: Lee, S., Kim, J. & Choi, S.-I. “Simultaneous classification of hand gestures and elbow angles using sEMG signals: a comparison of machine learning performances.” *Biomedical Engineering Letters* (2026). [DOI: 10.1007/s13534-026-00607-7](https://doi.org/10.1007/s13534-026-00607-7)
-- 공개 데이터: [sEMG-Hand-Gesture-Elbow-Angle-Dataset](https://github.com/TestUser-alt-dev/sEMG-Hand-Gesture-Elbow-Angle-Dataset)
-- 데이터는 참가자 8명(a–h), 손동작 4종(extor, fist, open, pro), 팔꿈치 각도 2종(30°, 60°)의 64개 CSV로 구성된다. 각 CSV의 5개 sEMG 채널은 1 kHz로 기록되며, 파일별 30회 시행을 포함한다.
+\## 1. 프로젝트 개요
 
-> 원본 CSV는 약 932 MB이므로 이 저장소에 복제하지 않는다. 위 공개 데이터 저장소에서 CSV 64개를 받아 `data/H/` 폴더에 둔다. 이 저장소의 `.gitignore`는 해당 원본 CSV를 Git 추적에서 제외한다. 전처리 결과 `week2_results/dataset.npz`와 재현 코드는 저장소에 포함한다.
 
-## 실행 환경 및 방법
 
-필요 패키지는 `requirements.txt`에 적혀 있다. 프로젝트 폴더에서 가상환경을 활성화한 뒤 아래 순서대로 실행한다.
+이 프로젝트는 sEMG(표면 근전도) 데이터를 이용하여 A\~E 5개의 클래스를 분류하는 딥러닝 모델을 만들어 본 프로젝트이다.
 
-```powershell
-python -m pip install -r requirements.txt
-python .\week2_h_pipeline.py
-python .\evaluate_5fold.py
+
+
+sEMG 데이터를 전처리한 뒤 CWT를 적용하여 시간-주파수 데이터로 변환하고, DenseNet161과 ResNet18을 사용하여 분류하였다.
+
+
+
+두 모델을 같은 조건에서 학습시킨 후 Accuracy, Precision, Recall, F1 Score를 비교하고 Confusion Matrix를 확인하였다.
+
+
+
+\---
+
+
+
+\## 2. 데이터
+
+
+
+\### 데이터 구성
+
+
+
+데이터는 A\~E 총 5개의 클래스로 구성되어 있고, 각 클래스마다 50개의 CSV 파일이 있다.
+
+
+
+| 클래스    |    파일 수 |
+
+| ------ | ------: |
+
+| A      |      50 |
+
+| B      |      50 |
+
+| C      |      50 |
+
+| D      |      50 |
+
+| E      |      50 |
+
+| \*\*전체\*\* | \*\*250\*\* |
+
+
+
+각 CSV 파일은 2개의 sEMG 채널로 되어 있으며, 파일 하나당 3000개의 데이터가 들어 있다.
+
+
+
+\* Sampling Frequency: 1000 Hz
+
+\* 채널 수: 2
+
+\* 파일당 데이터: 3000 samples
+
+\* 클래스 수: 5
+
+
+
+\### Train / Test
+
+
+
+각 클래스에서 40개는 Train, 10개는 Test에 사용하였다.
+
+
+
+| 구분     |    파일 수 | Window 수 |
+
+| ------ | ------: | -------: |
+
+| Train  |     200 |     3800 |
+
+| Test   |      50 |      950 |
+
+| \*\*전체\*\* | \*\*250\*\* | \*\*4750\*\* |
+
+
+
+\---
+
+
+
+\## 3. 데이터 전처리
+
+
+
+모델에 넣기 전에 sEMG 데이터에 다음 전처리를 적용하였다.
+
+
+
+\### 60 Hz Notch Filter
+
+
+
+60 Hz 부근의 전원 노이즈를 제거하기 위해 Notch Filter를 적용하였다.
+
+
+
+\* Notch Frequency: 60 Hz
+
+\* Q Factor: 30
+
+
+
+\### Band-pass Filter
+
+
+
+20\~499 Hz 범위의 신호를 사용하기 위해 4차 Butterworth Band-pass Filter를 적용하였다.
+
+
+
+\### Windowing
+
+
+
+3000개의 데이터를 일정한 크기로 나누었다.
+
+
+
+\* Window: 300 samples
+
+\* Window 길이: 300 ms
+
+\* Hop: 150 samples
+
+\* 이동 간격: 150 ms
+
+
+
+하나의 CSV 파일에서 19개의 Window가 만들어진다.
+
+
+
+\### Min-Max Normalization
+
+
+
+각 Window의 값을 0\~1 범위로 정규화하였다.
+
+
+
+\### CWT
+
+
+
+전처리한 신호에 CWT(Continuous Wavelet Transform)를 적용하였다.
+
+
+
+\* Wavelet: Morlet (`morl`)
+
+\* Scale: 1\~32
+
+\* 기존 2개 채널을 각각 CWT 변환
+
+\* 두 채널의 평균값을 추가
+
+
+
+최종 입력 데이터의 형태는 다음과 같다.
+
+
+
+```text
+
+(3, 32, 300)
+
 ```
 
-현재 Windows 환경에서는 가상환경 Python 3.12의 scikit-learn 네이티브 DLL이 애플리케이션 제어 정책에 차단됐다. 이 PC에서는 설치된 Python 3.14 실행 파일로 성공적으로 평가했다. 같은 문제가 나면 아래처럼 실행한다.
+
+
+\---
+
+
+
+\## 4. 사용 모델
+
+
+
+이번 프로젝트에서는 DenseNet161과 ResNet18 두 가지 모델을 사용하였다.
+
+
+
+\### DenseNet161
+
+
+
+\* Model: DenseNet161
+
+\* Pretrained Weight: 사용하지 않음
+
+\* Classifier: 2208 → 5
+
+\* Optimizer: Adam
+
+\* Learning Rate: 0.001
+
+\* Loss: Cross Entropy Loss
+
+\* Batch Size: 16
+
+\* Epoch: 5
+
+
+
+\### ResNet18
+
+
+
+\* Model: ResNet18
+
+\* Pretrained Weight: 사용하지 않음
+
+\* Fully Connected Layer: 512 → 5
+
+\* Optimizer: Adam
+
+\* Learning Rate: 0.001
+
+\* Loss: Cross Entropy Loss
+
+\* Batch Size: 16
+
+\* Epoch: 5
+
+
+
+두 모델 모두 같은 Train/Test 데이터와 전처리 방법을 사용하였다.
+
+
+
+\---
+
+
+
+\## 5. 학습 및 평가
+
+
+
+Train 데이터 3800개의 Window를 이용하여 모델을 학습하였다.
+
+
+
+학습이 끝난 후 Test 데이터 950개를 이용하여 성능을 확인하였다.
+
+
+
+평가에는 다음 지표를 사용하였다.
+
+
+
+\* Accuracy
+
+\* Precision
+
+\* Recall
+
+\* F1 Score
+
+
+
+Precision, Recall, F1 Score는 Macro Average를 사용하였다.
+
+
+
+또한 Confusion Matrix를 통해 어떤 클래스에서 오분류가 많이 발생하는지 확인하였다.
+
+
+
+\---
+
+
+
+\## 6. 실행 방법
+
+
+
+프로젝트 폴더에서 아래 명령어를 실행하면 된다.
+
+
+
+\### DenseNet161
+
+
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\Python\Python314\python.exe" .\week2_h_pipeline.py
-& "$env:LOCALAPPDATA\Programs\Python\Python314\python.exe" .\evaluate_5fold.py
+
+python train\_densenet.py
+
 ```
 
-## 코드 파일 설명
 
-| 파일 | 역할 |
-|---|---|
-| `week2_h_pipeline.py` | CSV 검사, 필터링, 시행 추출, 2초 구간 자르기, 슬라이딩 윈도우, 25차원 특징 계산, 파일 단위 분할, 표준화, `dataset.npz`와 확인용 그림·요약 저장 |
-| `train_models.py` | 고정 80:20 홀드아웃 기준으로 세 모델을 학습·평가하는 참고용 코드 |
-| `evaluate_5fold.py` | 같은 CSV에서 나온 윈도우가 fold를 넘지 않도록 그룹 5-fold 교차검증; fold별 표준화 및 성능표·혼동행렬 저장 |
-| `week2_results/dataset.npz` | 표준화된 학습/테스트 특징 배열, 라벨, 클래스명, 분할 파일명 |
-| `week2_results/week2_summary.json` | 파일·시행·윈도우 수, 파라미터와 데이터 구조 요약 |
-| `week2_results/week2_filter_spectrum.png` | 필터 전후 스펙트럼 비교 그림 |
-| `week2_results/week2_segment_5channels.png` | 추출한 2초 5채널 신호 그림 |
-| `week2_results/models/model_results.json` | 모델 성능 및 혼동행렬의 수치 결과 |
-| `week2_results/models/model_results.md` | 모델 성능표와 혼동행렬 이미지 링크 |
-| `week2_results/cv5_grouped/cv5_results.json` | 파일 그룹 5-fold 결과의 수치 데이터 |
-| `week2_results/cv5_grouped/cv5_results.md` | 파일 그룹 5-fold 성능표와 혼동행렬 링크 |
 
-## 데이터 처리 및 평가 설정
+실행 후 다음 파일이 생성된다.
 
-1. CSV의 `mark`로 각 시행을 찾는다. 시행 간격 중앙값은 5,000 samples(5초)이며 파일마다 30회 시행이 확인되었다.
-2. 각 시행에 60 Hz 노치 필터(Q=30)와 20–450 Hz 4차 Butterworth 대역통과 필터를 적용한다. 제공 CSV의 채널명은 이미 `bandpass 1`–`bandpass 5`로 되어 있으므로, 이번 코드는 강의 실습 절차에 따라 필터를 한 번 더 적용했다. 이 점은 논문 원본 처리와 차이가 날 수 있다.
-3. `mark` 기준 1,500 samples 뒤에서 2,000 samples(2초)를 자른다. 이는 강의자료 예시의 시작 위치를 따른 실습 설정이다.
-4. 200 samples(200 ms) 윈도우를 100 samples(100 ms) 간격으로 이동한다. 따라서 겹침은 50%이고, 2초 구간마다 19개 윈도우가 생긴다.
-5. 채널별 RMS, MAV, WL, ZC, SSC를 계산하여 윈도우 하나를 25개 값으로 표현한다. ZC·SSC 임계값은 실습 코드의 `0.01`을 사용한다.
-6. CSV 단위 stratified 80:20 분할(random seed 42) 배열도 함께 저장한다. 학습 51개 CSV, 테스트 13개 CSV이며 윈도우는 각각 29,070개와 7,410개다. 이는 `train_models.py`의 단일 홀드아웃 참고 평가에 사용된다.
-7. 주 성능표는 전체 윈도우에 대해 `StratifiedGroupKFold(n_splits=5)`를 사용한다. 원본 CSV를 그룹으로 지정해 같은 파일의 윈도우가 학습과 검증에 갈라지지 않게 하고, StandardScaler는 매 fold 학습 자료에만 맞춘다. 같은 참가자의 서로 다른 조건 파일은 fold 간에 나뉠 수 있다.
 
-## 모델별 성능 비교: 파일 단위 그룹 5-fold
 
-각 원본 CSV의 윈도우는 한 fold에만 배정했다. StandardScaler는 fold마다 학습 자료에만 맞췄다. 아래 값은 5개 fold 점수의 평균 ± 표준편차이며 Precision·Recall·F1은 macro 평균이다.
+```text
 
-| 모델 | Accuracy | Precision (macro) | Recall (macro) | F1-score (macro) |
-|---|---:|---:|---:|---:|
-| Random Forest | 10.33 ± 1.50% | 10.46 ± 1.41% | **10.91 ± 0.72%** | **10.30 ± 1.03%** |
-| SVM (RBF) | **10.58 ± 3.20%** | **12.00 ± 3.02%** | 11.18 ± 2.64% | 10.27 ± 2.47% |
-| XGBoost | 10.31 ± 1.85% | 10.49 ± 2.29% | 10.64 ± 1.46% | 10.11 ± 1.75% |
+densenet161\_semg.pth
 
-이번 평가에서는 SVM의 평균 Accuracy와 macro Precision이 가장 높았고, RF의 macro Recall과 macro F1이 가장 높았다. 세 모델의 차이는 작고 모두 낮다. 논문은 RF 5-fold Accuracy 96.72 ± 0.58%를 보고하지만, 공개 초록에서 fold 단위가 명시되지 않아 이 결과와 직접 같은 절차라고 확인할 수 없다. 따라서 논문 성능을 재현했다고 주장하지 않는다. 이전 단일 80:20 홀드아웃 결과는 [별도 요약](week2_results/models/model_results.md)에 남겨 두었다.
+loss\_curve.png
 
-## Confusion Matrix 분석
+confusion\_matrix.png
 
-행은 실제 클래스, 열은 예측 클래스 순서다: `30_extor`, `30_fist`, `30_open`, `30_pro`, `60_extor`, `60_fist`, `60_open`, `60_pro`.
+densenet161\_results.txt
 
-### Random Forest — pooled out-of-fold 결과
+```
 
-![Random Forest confusion matrix](week2_results/cv5_grouped/random_forest_confusion_matrix.png)
 
-- 가장 잘 분류된 클래스는 `60_fist`(재현율 20.9%)이고, 가장 낮은 클래스는 `60_pro`(3.3%)다.
-- 주요 오분류는 `60_pro → 30_pro` 1,611개, `30_pro → 60_pro` 1,580개, `30_open → 60_open` 1,570개다.
-- 같은 손동작에서 각도 조건이 다른 클래스 간 혼동이 보인다. 낮은 전체 성능을 고려해 제한적으로 해석한다.
 
-### SVM (RBF)
+\### ResNet18
 
-![SVM confusion matrix](week2_results/cv5_grouped/svm_rbf_confusion_matrix.png)
 
-- 가장 잘 분류된 클래스는 `30_extor`(18.1%)이고, 가장 낮은 클래스는 `60_pro`(4.0%)다.
-- 주요 오분류는 `60_extor → 30_extor` 2,072개, `30_pro → 60_pro` 1,823개, `60_open → 30_extor` 1,438개다.
-- 일부 예측이 `30_extor`에 쏠리고 fold 간 점수 편차도 비교적 크다.
 
-### XGBoost
+```powershell
 
-![XGBoost confusion matrix](week2_results/cv5_grouped/xgboost_confusion_matrix.png)
+python train\_resnet.py
 
-- 가장 잘 분류된 클래스는 `60_fist`(18.4%)이고, 가장 낮은 클래스는 `60_pro`(3.4%)다.
-- 주요 오분류는 `60_pro → 30_pro` 1,615개, `30_pro → 60_pro` 1,586개, `30_open → 60_open` 1,408개다.
-- RF와 마찬가지로 각도 조건이 다른 같은 동작 간 혼동이 반복되었다.
+```
 
-## 최종 결과 및 한계
 
-- 파일 단위 5-fold에서 SVM Accuracy는 10.58%, RF macro F1은 10.30%로 가장 높았고, 모델 간 차이는 작았다.
-- 30°/60° 같은 동작 조합 사이에서 큰 오분류가 반복되었다.
-- 전체 Accuracy 약 10%는 8-class 균등 무작위 기준 12.5%보다 낮다. 레이블 정렬·구간 선택·특징 구현을 다시 확인해야 하며, 현재 결과를 성공적인 논문 재현으로 제출하면 안 된다.
-- 이 평가는 동일 CSV의 윈도우 누수를 막지만, 참가자의 다른 조건 CSV가 서로 다른 fold에 갈 수 있으므로 참가자 독립 일반화 성능은 측정하지 않는다.
-- 논문 절차와 수치를 직접 맞추려면 원문에서 fold 구성 단위와 모델 설정을 확인해야 한다. 공개된 초록은 5-fold 결과만 제시한다.
 
-## 결과 그림 및 파일
+실행 후 다음 파일이 생성된다.
 
-- [필터 전후 스펙트럼](week2_results/week2_filter_spectrum.png)
-- [5채널 2초 신호](week2_results/week2_segment_5channels.png)
-- [모델 결과와 혼동행렬 모음](week2_results/models/model_results.md)
-- [5-fold 결과와 혼동행렬 모음](week2_results/cv5_grouped/cv5_results.md)
-- [전처리 요약 JSON](week2_results/week2_summary.json)
+
+
+```text
+
+resnet18\_semg.pth
+
+resnet18\_loss\_curve.png
+
+resnet18\_confusion\_matrix.png
+
+resnet18\_results.txt
+
+```
+
+
+
+`.pth` 파일은 용량이 크기 때문에 GitHub에는 올리지 않고 `.gitignore`에 추가하였다.
+
+
+
+\---
+
+
+
+\## 7. 주요 파일
+
+
+
+| 파일 / 폴더                         | 설명                           |
+
+| ------------------------------- | ---------------------------- |
+
+| `data/`                         | 원본 sEMG CSV 데이터              |
+
+| `dataset\_split/`                | Train / Test 데이터             |
+
+| `train\_densenet.py`             | DenseNet161 학습 및 평가          |
+
+| `train\_resnet.py`               | ResNet18 학습 및 평가             |
+
+| `evaluate.py`                   | DenseNet161 평가               |
+
+| `dataset\_summary.py`            | 데이터셋 확인                      |
+
+| `plot\_signal.py`                | sEMG 신호 확인                   |
+
+| `cwt\_example.py`                | CWT 변환 확인                    |
+
+| `make\_window.py`                | Windowing 관련 코드              |
+
+| `semg\_split.py`                 | 데이터 분할 확인                    |
+
+| `split\_dataset.py`              | 데이터 분할 관련 코드                 |
+
+| `check\_cuda.py`                 | PyTorch / CUDA 확인            |
+
+| `loss\_curve.py`                 | Loss 그래프 관련 코드               |
+
+| `confusion\_matrix.png`          | DenseNet161 Confusion Matrix |
+
+| `resnet18\_confusion\_matrix.png` | ResNet18 Confusion Matrix    |
+
+| `loss\_curve.png`                | DenseNet161 Loss 그래프         |
+
+| `resnet18\_loss\_curve.png`       | ResNet18 Loss 그래프            |
+
+| `densenet161\_results.txt`       | DenseNet161 결과               |
+
+| `resnet18\_results.txt`          | ResNet18 결과                  |
+
+
+
+\---
+
+
+
+\## 8. 모델 성능 비교
+
+
+
+두 모델을 같은 데이터와 전처리 조건에서 학습하였다.
+
+
+
+| Metric    | DenseNet161 | ResNet18 |
+
+| --------- | ----------: | -------: |
+
+| Accuracy  |  \*\*84.63%\*\* |   76.21% |
+
+| Precision |  \*\*84.84%\*\* |   78.89% |
+
+| Recall    |  \*\*84.63%\*\* |   76.21% |
+
+| F1 Score  |  \*\*84.68%\*\* |   76.06% |
+
+
+
+DenseNet161의 Accuracy는 84.63%, ResNet18은 76.21%로 나타났다.
+
+
+
+Accuracy 차이는 약 8.42%p였다.
+
+
+
+F1 Score도 DenseNet161 84.68%, ResNet18 76.06%로 나타났다.
+
+
+
+이번 실험에서는 DenseNet161이 ResNet18보다 높은 성능을 보였다.
+
+
+
+\---
+
+
+
+\## 9. Confusion Matrix 분석
+
+
+
+\### 9.1 DenseNet161
+
+
+
+```text
+
+\[\[185   2   1   0   2]
+
+&#x20;\[  1 150   9  11  19]
+
+&#x20;\[  0  22 162   6   0]
+
+&#x20;\[  2   7  15 160   6]
+
+&#x20;\[  1  25   5  12 147]]
+
+```
+
+
+
+클래스별 정확도는 다음과 같다.
+
+
+
+| Class | Accuracy |
+
+| ----- | -------: |
+
+| A     |   97.37% |
+
+| B     |   78.95% |
+
+| C     |   85.26% |
+
+| D     |   84.21% |
+
+| E     |   77.37% |
+
+
+
+A 클래스의 정확도가 97.37%로 가장 높았다.
+
+
+
+E 클래스는 77.37%로 가장 낮았고 B 클래스도 78.95%로 낮은 편이었다.
+
+
+
+주요 오분류는 다음과 같다.
+
+
+
+\* E → B: 25개
+
+\* C → B: 22개
+
+\* B → E: 19개
+
+\* D → C: 15개
+
+
+
+특히 B와 E 사이에서 오분류가 많이 발생하였다.
+
+
+
+B와 E의 신호 특징이 일부 비슷해서 구분하기 어려웠을 가능성이 있다. 또한 클래스당 파일 수가 50개이기 때문에 데이터가 충분하지 않았을 가능성도 있다.
+
+
+
+다만 정확한 원인은 추가적인 데이터와 특징 분석이 필요하다.
+
+
+
+\### 9.2 ResNet18
+
+
+
+```text
+
+\[\[172   1  16   1   0]
+
+&#x20;\[  3 113  28  33  13]
+
+&#x20;\[  0   3 144  41   2]
+
+&#x20;\[  3   0   8 176   3]
+
+&#x20;\[ 11  15  14  31 119]]
+
+```
+
+
+
+클래스별 정확도는 다음과 같다.
+
+
+
+| Class | Accuracy |
+
+| ----- | -------: |
+
+| A     |   90.53% |
+
+| B     |   59.47% |
+
+| C     |   75.79% |
+
+| D     |   92.63% |
+
+| E     |   62.63% |
+
+
+
+D 클래스의 정확도가 92.63%로 가장 높았다.
+
+
+
+B 클래스는 59.47%로 가장 낮았다.
+
+
+
+주요 오분류는 다음과 같다.
+
+
+
+\* C → D: 41개
+
+\* B → D: 33개
+
+\* E → D: 31개
+
+\* B → C: 28개
+
+
+
+ResNet18에서는 C, B, E 클래스가 D 클래스로 오분류되는 경우가 많이 나타났다.
+
+
+
+현재 결과만 보면 일부 클래스의 특징을 충분히 구분하지 못한 것으로 볼 수 있다. 정확한 원인을 확인하려면 추가적인 데이터 분석이 필요하다.
+
+
+
+\---
+
+
+
+\## 10. 최종 결과
+
+
+
+이번 프로젝트에서는 sEMG 데이터를 전처리하고 CWT를 적용한 뒤 DenseNet161과 ResNet18을 이용하여 A\~E 클래스를 분류하였다.
+
+
+
+결과는 다음과 같다.
+
+
+
+\* DenseNet161 Accuracy: \*\*84.63%\*\*
+
+\* DenseNet161 F1 Score: \*\*84.68%\*\*
+
+\* ResNet18 Accuracy: \*\*76.21%\*\*
+
+\* ResNet18 F1 Score: \*\*76.06%\*\*
+
+
+
+이번 실험에서는 DenseNet161이 ResNet18보다 높은 성능을 보였다.
+
+
+
+DenseNet161에서는 B와 E 사이의 오분류가 많이 나타났고, ResNet18에서는 C, B, E에서 D로 오분류되는 경우가 많이 나타났다.
+
+
+
+현재 데이터는 클래스당 50개의 파일로 구성되어 있고 학습도 5 Epoch로 진행했기 때문에, 데이터 수나 학습 조건을 변경하면 결과가 달라질 수 있다.
+
+
+
+추가로 데이터를 확보하거나 전처리 방법 및 학습 조건을 변경하면 오분류가 많은 클래스의 성능을 개선할 수 있을 것으로 생각된다.
+
+
+

@@ -20,6 +20,3 @@ Thumbs.db
 # Trained model
 densenet161_semg.pth
 resnet18_semg.pth
-
-# Raw source dataset (about 932 MB); download from the linked public dataset.
-data/H/*.csv
